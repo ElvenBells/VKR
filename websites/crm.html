@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthetic CRM Benchmark v1.0</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            --font-mono: 'Segoe UI Mono', 'Consolas', monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 4rem; }
+
+        /* HEADER */
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding: 1rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); }
+        .header h1 { font-size: 1.3rem; font-weight: 700; }
+        .controls { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; }
+        .search-input { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 6px; width: 260px; font-size: 0.9rem; }
+        .search-input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+        .btn { padding: 0.6rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: background 0.2s; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-ghost:hover { background: #f1f5f9; }
+
+        /* TABLE */
+        .table-container { max-width: 1100px; margin: 1.5rem auto; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border); }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 0.9rem 1.2rem; text-align: left; border-bottom: 1px solid var(--border); }
+        .data-table th { background: #f8fafc; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .data-table tbody tr:hover { background: #f1f5f9; cursor: pointer; }
+        .contact-info { display: flex; align-items: center; gap: 0.8rem; }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #475569; }
+        .name { font-weight: 600; }
+        .email { font-size: 0.85rem; color: var(--text-muted); }
+        
+        /* BADGES */
+        .badge { padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; display: inline-block; }
+        .badge-active { background: #ecfdf5; color: var(--success); }
+        .badge-lead { background: #fef3c7; color: var(--warning); }
+        .badge-inactive { background: #f1f5f9; color: var(--text-muted); }
+        .badge-archived { background: #fee2e2; color: var(--danger); }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); display: none; align-items: center; justify-content: center; z-index: 100; opacity: 0; transition: opacity 0.2s; }
+        .modal-overlay.open { display: flex; opacity: 1; }
+        .modal-card { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); width: 100%; max-width: 480px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: translateY(10px); transition: transform 0.2s; }
+        .modal-overlay.open .modal-card { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+        .modal-header h2 { font-size: 1.1rem; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem; }
+        .form-input { width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
+        .form-input.error { border-color: var(--danger); background: #fef2f2; }
+        .error-msg { color: var(--danger); font-size: 0.8rem; margin-top: 0.3rem; min-height: 1.2em; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.5rem; }
+
+        /* DYNAMIC FOOTER */
+        .status-bar { text-align: center; padding: 1.2rem; color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem; }
+        .status-bar span { font-variant-numeric: tabular-nums; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; align-items: flex-start; }
+            .search-input { width: 100%; }
+            .data-table th:nth-child(3), .data-table td:nth-child(3) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header" id="header" data-testid="header-panel">
+        <h1>Contact Management</h1>
+        <div class="controls">
+            <input type="text" id="search-input" class="search-input" placeholder="Поиск по имени или email..." data-testid="search-input">
+            <button id="add-contact-btn" class="btn btn-primary" data-testid="add-contact-btn">+ Добавить контакт</button>
+        </div>
+    </header>
+
+    <main class="table-container" id="table-container" data-testid="contact-table-container">
+        <table class="data-table" id="contact-table">
+            <thead>
+                <tr>
+                    <th>Контакт</th>
+                    <th>Роль</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody id="contact-tbody">
+                <!-- Rendered via JS -->
+            </tbody>
+        </table>
+    </main>
+
+    <div class="status-bar" id="status-bar" data-testid="status-bar" data-dynamic="true">
+        Показано: <span id="visible-count">0</span> | Обновлено: <span id="last-sync">--:--</span>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="contact-modal" data-testid="contact-modal">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <div class="modal-header">
+                <h2 id="modal-title">Редактирование контакта</h2>
+                <button class="close-btn" id="modal-close" aria-label="Закрыть">&times;</button>
+            </div>
+            <form id="contact-form" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="form-name">Имя *</label>
+                    <input type="text" id="form-name" class="form-input" required data-testid="form-name">
+                    <div class="error-msg" id="err-name" data-testid="err-name"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="form-email">Email *</label>
+                    <input type="email" id="form-email" class="form-input" required data-testid="form-email">
+                    <div class="error-msg" id="err-email" data-testid="err-email"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="form-role">Роль</label>
+                    <input type="text" id="form-role" class="form-input" data-testid="form-role">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="form-status">Статус</label>
+                    <select id="form-status" class="form-input" data-testid="form-status">
+                        <option value="active">Active</option>
+                        <option value="lead">Lead</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-ghost" id="modal-cancel">Отмена</button>
+                    <button type="submit" class="btn btn-primary" id="modal-save">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * SYNTHETIC CRM BENCHMARK
+         * Предназначен для тестирования:
+         * 1. Семантического разрыва (DOM атрибуты vs визуальный текст/состояние)
+         * 2. Валидации форм (OCR ошибок, состояние disabled/error)
+         * 3. WCAG контраста (бейджи, ошибки валидации)
+         * 4. Маскирования динамических зон (счётчик поиска, время синхронизации)
+         */
+        (function() {
+            // === MOCK DATA ===
+            let contacts = [
+                { id: 1, name: 'Алексей Иванов', email: 'a.ivanov@corp.ru', role: 'Manager', status: 'active' },
+                { id: 2, name: 'Мария Петрова', email: 'm.petrova@corp.ru', role: 'Developer', status: 'lead' },
+                { id: 3, name: 'Дмитрий Сидоров', email: 'd.sidorov@corp.ru', role: 'Designer', status: 'inactive' },
+                { id: 4, name: 'Елена Кузнецова', email: 'e.kuznetsova@corp.ru', role: 'QA Lead', status: 'active' },
+                { id: 5, name: 'Сергей Волков', email: 's.volkov@corp.ru', role: 'DevOps', status: 'archived' },
+                { id: 6, name: 'Ольга Новикова', email: 'o.novikova@corp.ru', role: 'Analyst', status: 'active' }
+            ];
+
+            // === DOM REFS ===
+            const tbody = document.getElementById('contact-tbody');
+            const searchInput = document.getElementById('search-input');
+            const visibleCount = document.getElementById('visible-count');
+            const lastSync = document.getElementById('last-sync');
+            const modal = document.getElementById('contact-modal');
+            const form = document.getElementById('contact-form');
+            let currentEditId = null;
+
+            // === RENDER ===
+            function renderList(filter = '') {
+                tbody.innerHTML = '';
+                const term = filter.toLowerCase();
+                const filtered = contacts.filter(c => 
+                    c.name.toLowerCase().includes(term) || c.email.toLowerCase().includes(term)
+                );
+                
+                visibleCount.textContent = filtered.length;
+                
+                filtered.forEach(c => {
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-id', c.id);
+                    tr.setAttribute('data-testid', 'contact-row');
+                    tr.innerHTML = `
+                        <td>
+                            <div class="contact-info">
+                                <div class="avatar">${c.name.split(' ').map(n=>n[0]).join('')}</div>
+                                <div>
+                                    <div class="name" data-testid="contact-name">${c.name}</div>
+                                    <div class="email" data-testid="contact-email">${c.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-testid="contact-role">${c.role}</td>
+                        <td data-testid="contact-status">
+                            <span class="badge badge-${c.status}" data-status="${c.status}">${formatStatus(c.status)}</span>
+                        </td>
+                        <td><button class="btn btn-ghost" data-testid="edit-btn" data-id="${c.id}">✎ Изменить</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                bindEvents();
+            }
+
+            function formatStatus(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+            function bindEvents() {
+                document.querySelectorAll('[data-testid="edit-btn"]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openModal(parseInt(btn.dataset.id));
+                    });
+                });
+            }
+
+            // === SEARCH & DYNAMIC UPDATES ===
+            searchInput.addEventListener('input', (e) => renderList(e.target.value));
+            setInterval(() => {
+                const now = new Date();
+                lastSync.textContent = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            }, 2000);
+
+            // === MODAL & VALIDATION ===
+            function openModal(id) {
+                currentEditId = id;
+                const c = contacts.find(x => x.id === id);
+                document.getElementById('form-name').value = c.name;
+                document.getElementById('form-email').value = c.email;
+                document.getElementById('form-role').value = c.role;
+                document.getElementById('form-status').value = c.status;
+                clearErrors();
+                modal.classList.add('open');
+            }
+            function closeModal() { modal.classList.remove('open'); currentEditId = null; }
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            document.getElementById('modal-cancel').addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+
+            function clearErrors() {
+                document.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
+                document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
+            }
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                clearErrors();
+                let valid = true;
+                const name = document.getElementById('form-name');
+                const email = document.getElementById('form-email');
+
+                if(!name.value.trim()) { showError('err-name', 'Имя обязательно'); valid = false; }
+                if(!email.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) { showError('err-email', 'Некорректный email'); valid = false; }
+
+                if(valid) {
+                    const idx = contacts.findIndex(c => c.id === currentEditId);
+                    contacts[idx].name = name.value;
+                    contacts[idx].email = email.value;
+                    contacts[idx].role = document.getElementById('form-role').value;
+                    contacts[idx].status = document.getElementById('form-status').value;
+                    renderList(searchInput.value);
+                    closeModal();
+                }
+            });
+
+            function showError(id, msg) {
+                document.getElementById(id).textContent = msg;
+                document.getElementById(id.replace('err-', 'form-')).classList.add('error');
+            }
+
+            // === INIT ===
+            renderList();
+
+            // === PUBLIC API FOR DEFECT INJECTION (CRM SPECIFIC) ===
+            window.benchmark = {
+                // 1. Семантический разрыв: DOM статус "active", но визуальный текст "Inactive"
+                mutateSemantic: () => {
+                    const badge = document.querySelector('[data-testid="contact-status"] .badge');
+                    if(badge) {
+                        badge.setAttribute('data-status', 'active'); // DOM говорит active
+                        badge.textContent = 'Inactive';             // Визуал говорит Inactive
+                        badge.className = 'badge badge-active';     // Цвет тоже active (создает конфликт)
+                    }
+                },
+                // 2. Нарушение WCAG: делаем текст ошибок валидации низко-контрастным
+                mutateContrast: () => {
+                    document.querySelector('.error-msg').style.color = '#b0b8c4'; // CR < 4.5:1 на белом
+                    document.querySelector('.badge-lead').style.color = '#d4c89a';
+                },
+                // 3. Сломать валидацию: убрать required, но оставить визуальную ошибку
+                mutateValidation: () => {
+                    const input = document.getElementById('form-email');
+                    input.removeAttribute('required');
+                    input.classList.add('error');
+                    document.getElementById('err-email').textContent = 'Обязательное поле';
+                },
+                // Reset
+                reset: () => location.reload()
+            };
+        })();
+    </script>
+</body>
+</html>
