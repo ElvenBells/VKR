@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Test Site</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        /* Shadow DOM Host */
+        custom-widget { display: block; margin: 20px 0; border: 2px dashed #aaa; padding: 10px; }
+        
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; }
+        .modal { background: white; padding: 20px; border-radius: 8px; width: 300px; }
+        .close-btn { float: right; cursor: pointer; font-weight: bold; }
+        
+        /* Dynamic List */
+        #dynamic-list li { padding: 5px; border-bottom: 1px solid #eee; opacity: 0; transition: opacity 0.5s; }
+        .visible { opacity: 1 !important; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    
+    <!-- Shadow DOM Component -->
+    <custom-widget></custom-widget>
+
+    <!-- Dynamic Content -->
+    <h2>Recent Activities</h2>
+    <ul id="dynamic-list">
+        <!-- Items injected via JS -->
+    </ul>
+    <button id="load-more">Load More Items</button>
+
+    <!-- Modal Trigger -->
+    <button id="open-modal" style="margin-top: 20px;">Open Settings</button>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <span class="close-btn" onclick="closeModal()">X</span>
+            <h2>Settings</h2>
+            <label><input type="checkbox" checked> Enable Notifications</label>
+            <br><br>
+            <button onclick="closeModal()">Save</button>
+        </div>
+    </div>
+
+    <script>
+        // Shadow DOM Definition
+        class CustomWidget extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({mode: 'open'});
+                shadow.innerHTML = `
+                    <style>div { color: blue; font-weight: bold; }</style>
+                    <div>Internal Widget Text (Shadow DOM)</div>
+                    <button id="shadow-btn">Click Inside Shadow</button>
+                `;
+                shadow.getElementById('shadow-btn').addEventListener('click', () => {
+                    alert('Shadow DOM Button Clicked!');
+                });
+            }
+        }
+        customElements.define('custom-widget', CustomWidget);
+
+        // Dynamic List Logic
+        let count = 0;
+        function addItems(num) {
+            const list = document.getElementById('dynamic-list');
+            for(let i=0; i<num; i++) {
+                const li = document.createElement('li');
+                li.innerText = `Item ${++count} - Generated at ${new Date().toLocaleTimeString()}`;
+                list.appendChild(li);
+                setTimeout(() => li.classList.add('visible'), 100 * i);
+            }
+        }
+        
+        document.getElementById('load-more').addEventListener('click', () => addItems(5));
+        
+        // Modal Logic
+        const modal = document.getElementById('settings-modal');
+        document.getElementById('open-modal').addEventListener('click', () => modal.style.display = 'flex');
+        window.closeModal = () => modal.style.display = 'none';
+
+        // Init
+        addItems(3);
+    </script>
+</body>
+</html>

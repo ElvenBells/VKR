@@ -1,0 +1,11 @@
+playwright
+pytest
+opencv-python-headless
+easyocr
+torch
+ultralytics # YOLOv8
+langchain
+langchain-openai # Или langchain-community для локальных моделей
+pillow
+numpy
+allure-pytest

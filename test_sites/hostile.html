@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hostile Test Site</title>
+    <style>
+        body { font-family: monospace; overflow-x: hidden; }
+        .container { position: relative; width: 800px; height: 600px; margin: 0 auto; background: #f0f0f0; }
+        
+        /* Randomized Classes via JS will be applied */
+        .btn-action { position: absolute; padding: 10px 20px; cursor: pointer; border: none; color: white; font-weight: bold; }
+        
+        /* Canvas Area */
+        canvas { border: 1px solid #000; background: white; position: absolute; top: 50px; left: 50px; }
+
+        /* Animation */
+        @keyframes move {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(20px); }
+            100% { transform: translateX(0); }
+        }
+        .animated-icon { 
+            width: 40px; height: 40px; background: red; border-radius: 50%; 
+            position: absolute; top: 200px; left: 200px; 
+            animation: move 2s infinite ease-in-out; 
+            cursor: pointer;
+        }
+        
+        /* No Label Inputs */
+        .secret-input { position: absolute; top: 300px; left: 50px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Challenge Zone</h1>
+    <div class="container" id="app">
+        <canvas id="chartCanvas" width="300" height="200"></canvas>
+        <div class="animated-icon" title="Submit" onclick="handleAction('Icon Clicked')"></div>
+        <input type="text" class="secret-input" placeholder="Type here...">
+        <!-- Buttons generated with random IDs -->
+    </div>
+    <div id="log" style="margin-top: 20px; color: green;"></div>
+
+    <script>
+        // Canvas Drawing
+        const canvas = document.getElementById('chartCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = "#4CAF50";
+        ctx.fillRect(10, 10, 50, 150);
+        ctx.fillStyle = "#2196F3";
+        ctx.fillRect(80, 50, 50, 110);
+        ctx.fillStyle = "#FF5722";
+        ctx.fillRect(150, 30, 50, 130);
+        ctx.fillStyle = "black";
+        ctx.font = "12px Arial";
+        ctx.fillText("Q1", 20, 170);
+        ctx.fillText("Q2", 90, 170);
+        ctx.fillText("Q3", 160, 170);
+
+        // Random ID Generator for Obfuscation
+        function randomId() { return 'x_' + Math.random().toString(36).substr(2, 9); }
+
+        // Create Buttons dynamically
+        const app = document.getElementById('app');
+        const actions = [
+            { text: "CONFIRM", x: 400, y: 100, color: "#28a745" },
+            { text: "CANCEL", x: 400, y: 160, color: "#dc3545" },
+            { text: "IGNORE", x: 400, y: 220, color: "#6c757d" }
+        ];
+
+        actions.forEach(act => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-action';
+            btn.id = randomId(); // Obfuscated ID
+            btn.style.left = act.x + 'px';
+            btn.style.top = act.y + 'px';
+            btn.style.background = act.color;
+            btn.innerText = act.text;
+            btn.onclick = () => handleAction(`Button ${act.text} clicked`);
+            app.appendChild(btn);
+        });
+
+        window.handleAction = (msg) => {
+            document.getElementById('log').innerText = msg + " at " + new Date().toISOString();
+        };
+    </script>
+</body>
+</html>

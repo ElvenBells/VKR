@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Basic Test Site</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { padding: 8px; width: 200px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; display: none; }
+    </style>
+</head>
+<body>
+    <h1>Login Form</h1>
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter username">
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter password">
+    </div>
+    <button id="login-btn" onclick="submitForm()">Login</button>
+    
+    <div id="result">
+        <h3>Login Successful!</h3>
+        <p>Welcome, <span id="user-display"></span>.</p>
+    </div>
+
+    <script>
+        function submitForm() {
+            const user = document.getElementById('username').value;
+            if(user) {
+                document.getElementById('user-display').innerText = user;
+                document.getElementById('result').style.display = 'block';
+            } else {
+                alert('Please enter a username');
+            }
+        }
+    </script>
+</body>
+</html>
